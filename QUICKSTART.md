@@ -1,6 +1,6 @@
 # Quick start guide
 
-Get up and running with your TurboWarp extension in 5 minutes!
+Get up and running with Flare.js in 5 minutes!
 
 ## Prerequisites
 
@@ -11,8 +11,8 @@ Get up and running with your TurboWarp extension in 5 minutes!
 
 ```bash
 # 1. Clone your repository
-git clone https://github.com/YOUR-USERNAME/YOUR-REPO-NAME.git
-cd YOUR-REPO-NAME
+git clone https://github.com/triflare/flare.js.git
+cd flare.js
 
 # 2. Install dependencies
 npm install
@@ -67,7 +67,6 @@ npm run build
 | `npm run watch`      | Rebuild automatically on file changes    |
 | `npm run lint`       | Run ESLint to check code style           |
 | `npm run format`     | Format code using Prettier               |
-| `npm run spellcheck` | Run spell checker on the codebase        |
 | `npm run fullstack`  | Run format, lint, spellcheck, and build  |
 
 All commands are run from the project root directory.
