@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "name": "minttw",
+  "name": "flare",
   "version": "1.0.0",
   "description": "A simple and painless custom TurboWarp extension development platform, powered by bundling.",
   "main": "build/extension.js",

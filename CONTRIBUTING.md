@@ -6,7 +6,7 @@ This guide explains how to add features and blocks to your TurboWarp extension.
 
 ### 1. Define the block in `getInfo()`
 
-Edit `src/01-core.js` and add a block definition to the `getInfo()` method:
+Edit `src/01-flarejs.js` and add a block definition to the `getInfo()` method:
 
 ```javascript
 getInfo() {
@@ -118,7 +118,7 @@ Then define the menu:
 
 ```javascript
 menus: {
-  colors: ['red', 'green', 'blue'];
+  colors: ['red', 'green', 'blue']
 }
 ```
 
@@ -126,9 +126,9 @@ menus: {
 
 Organize your code across multiple files for better maintainability:
 
-- `src/01-core.js` - Main extension class with `getInfo()` and block methods
-- `src/02-helpers.js` - Utility functions
-- `src/03-constants.js` - Constants and configuration
+- `src/01-flarejs.js` - Main extension class with `getInfo()` and block methods
+- `src/02-helpers.js` - Utility functions (optional)
+- `src/03-constants.js` - Constants and configuration (optional)
 - etc.
 
 Files load in alphabetical order, so you can reference helpers in your core class.
@@ -274,13 +274,13 @@ distance(args) {
 
 ### Automated Testing
 
-Create test scripts to verify your logic works correctly:
+To run automated tests, first add a "test" script to your package.json inside the "scripts" object (for example: "test": "node --test"). Then create your test files and run:
 
 ```bash
 npm run test
 ```
 
-Edit the test section in `package.json` to run your tests.
+This ensures `npm run test` executes your test runner as expected.
 
 ## Release Checklist
 

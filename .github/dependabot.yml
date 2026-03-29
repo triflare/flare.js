@@ -9,8 +9,6 @@ updates:
       day: 'monday'
       time: '03:00'
     open-pull-requests-limit: 5
-    reviewers:
-      - 'owner'
     allow:
       - dependency-type: 'all'
     commit-message:
@@ -28,8 +26,6 @@ updates:
       day: 'monday'
       time: '04:00'
     open-pull-requests-limit: 5
-    reviewers:
-      - 'owner'
     commit-message:
       prefix: 'ci'
       include: 'scope'

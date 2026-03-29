@@ -103,6 +103,21 @@ async function buildExtension() {
       let content = fs.readFileSync(file, 'utf8');
 
       /**
+       * FAIL-FAST CHECK FOR UNSUPPORTED ESM FORMS
+       */
+      const unsupportedPatterns = [
+        { re: /export\s+default/, desc: 'export default' },
+        { re: /export\s*\{/, desc: 'named export (export {...})' },
+        { re: /export\s+\*/, desc: 'export * from' },
+        { re: /import\s+['"][^'\"]+['"]/, desc: 'side-effect import (import \"module\")' },
+        { re: /import\s+type/, desc: 'type-only import' },
+      ];
+      const offenses = unsupportedPatterns.filter(p => p.re.test(content)).map(p => p.desc);
+      if (offenses.length) {
+        throw new Error(`Unsupported ESM patterns found in ${filename}: ${offenses.join(', ')}`);
+      }
+
+      /**
        * TRANSFORM MODULES TO PLAIN JS
        */
       // 1. Remove import lines
@@ -136,7 +151,7 @@ async function buildExtension() {
           compress: false,
           mangle: false,
           format: {
-            comments: /^\s*(Name|ID|Description|By|License|Version):/,
+            comments: /^\s*(Name|ID|Description|By|License|Version)\s*:/,
             beautify: true,
           },
         });
@@ -185,7 +200,7 @@ async function buildExtension() {
         compress: true,
         mangle: true,
         format: {
-          comments: /^\s*(Name|ID|Description|By|License|Version):/,
+          comments: /^\s*(Name|ID|Description|By|License|Version)\s*:/,
         },
       });
 
@@ -219,7 +234,11 @@ async function guardedBuild() {
   }
 
   isBuilding = true;
-  await buildExtension();
+  const ok = await buildExtension();
+  if (!ok) {
+    // Propagate failure to process exit code so CI can detect build failure
+    process.exitCode = 1;
+  }
   isBuilding = false;
 
   if (pendingBuild) {
@@ -267,7 +286,8 @@ const productionMode =
 // Execute
 (async () => {
   // Always run the initial build
-  await buildExtension();
+  const ok = await buildExtension();
+  if (!ok) process.exitCode = 1;
 
   if (watchMode) {
     watchFiles();

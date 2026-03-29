@@ -5,7 +5,7 @@ Get up and running with Flare.js in 5 minutes!
 ## Prerequisites
 
 - Node.js 18+ ([Download](https://nodejs.org/))
-- TurboWarp ([Link](https://turbowarp.org/)) or Scratch 3.0+
+- TurboWarp ([TurboWarp website](https://turbowarp.org)) or Scratch 3.0+
 
 ## Setup (one-time)
 
@@ -29,27 +29,33 @@ Make sure you have completed the setup steps above.
 
 ### 2. Scaffold a new block
 
-Blocks are defined in `src/01-core.js` (for block definitions) and implemented in `src/02-example-module.js` (for logic).
+Blocks are defined in `src/01-flarejs.js` (for block definitions and wiring) and implemented as methods in the same class file.
 
 **Example: Add a "Say Hello" block**
 
-**a. Add the block definition to `getInfo()` in `src/01-core.js`:**
+**a. Add the block definition to `getInfo()` in `src/01-flarejs.js`:**
 
-**b. Implement the block in `src/02-example-module.js`:**
+Add an entry to the `blocks` array mapping the opcode to a method name (e.g., `sayHello`).
+
+**b. Implement the block as a method in `src/01-flarejs.js`:**
 
 ```js
-export function sayHello(args) {
+sayHello(args) {
   return `Hello, ${args.NAME || 'world'}!`;
 }
 ```
 
-**c. Wire up the block in `src/01-core.js`:**
+**c. Wire up the opcode mapping in `getInfo()` in `src/01-flarejs.js`:**
 
-```js
-import { sayHello } from './02-example-module.js';
-// ...existing code...
-sayHello(args) { return sayHello(args); }
+Ensure the `opcode` in your block definition matches the method name `sayHello` so the runtime calls that method when the block is used.
+
+**d. Rebuild the extension:**
+
+```bash
+npm run build
 ```
+
+**e. Load the extension in TurboWarp or Scratch.**
 
 **d. Rebuild the extension:**
 

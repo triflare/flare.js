@@ -35,15 +35,31 @@ jobs:
             echo "::error::Build failed: extension.js not found"
             exit 1
           fi
+          if [ ! -f build/min.extension.js ]; then
+            echo "::error::Build failed: min.extension.js not found"
+            exit 1
+          fi
+          if [ ! -f build/pretty.extension.js ]; then
+            echo "::error::Build failed: pretty.extension.js not found"
+            exit 1
+          fi
 
       - name: Create release and upload asset
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create ${{ github.ref_name }} \
-            ./build/extension.js \
-            ./build/min.extension.js \
-            ./build/pretty.extension.js \
-            --title "Release ${{ github.ref_name }}" \
-            --draft=false \
-            --generate-notes
+          # Create or update release in an idempotent way
+          if gh release view "${{ github.ref_name }}" >/dev/null 2>&1; then
+            echo "Release exists: updating assets and metadata"
+            gh release edit "${{ github.ref_name }}" --title "Release ${{ github.ref_name }}" --draft=false --generate-notes || true
+            gh release upload "${{ github.ref_name }}" ./build/extension.js ./build/min.extension.js ./build/pretty.extension.js --clobber || true
+          else
+            echo "Creating new release"
+            gh release create "${{ github.ref_name }}" \
+              ./build/extension.js \
+              ./build/min.extension.js \
+              ./build/pretty.extension.js \
+              --title "Release ${{ github.ref_name }}" \
+              --draft=false \
+              --generate-notes
+          fi

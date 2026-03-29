@@ -1,4 +1,5 @@
 name: Continuous integration
+# NOTE: Some 'uses:' entries reference tags (e.g., actions/checkout@v6). Pinning to immutable commit SHAs was not performed because commit SHAs must be resolved from the actions' repositories. Consider replacing tags with full commit SHAs for reproducible workflows.
 
 on:
   push:
@@ -158,8 +159,9 @@ jobs:
 
       - name: Validate JSON files
         run: |
-          for file in $(find src -name "*.json"); do
-            node -e "JSON.parse(require('fs').readFileSync('$file', 'utf8'))" || { echo "::error file=$file::Invalid JSON syntax"; exit 1; }
+          # Safely iterate null-delimited to handle spaces/newlines in filenames
+          find src -name "*.json" -print0 | while IFS= read -r -d '' file; do
+            node -e "const fs=require('fs'); try { JSON.parse(fs.readFileSync(process.argv[1],'utf8')); } catch (e) { console.error('::error file=' + process.argv[1] + '::Invalid JSON syntax'); process.exit(1); }" -- "$file" || exit 1
           done
 
       - name: Check for TODO/FIXME & console
@@ -278,7 +280,7 @@ jobs:
           retention-days: 7
 
       - name: Comment PR with build report
-        if: github.event_name == 'pull_request' && matrix.node-version == '20.x'
+        if: github.event_name == 'pull_request' && matrix.node-version == '20.x' && github.event.pull_request.head.repo.fork == false && github.actor != 'dependabot[bot]'
         uses: actions/github-script@v8
         with:
           script: |
