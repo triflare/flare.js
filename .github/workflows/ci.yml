@@ -1,0 +1,322 @@
+name: Continuous integration
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '2 2 * * 1'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ------------------------------------------------------------------
+  # JOB 1: PR Compliance
+  # ------------------------------------------------------------------
+  pr-compliance:
+    name: Validate PR
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Check PR title
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const title = context.payload.pull_request.title;
+            const validPatterns = [
+              /^(feat|fix|docs|style|refactor|perf|test|chore)(\(.+\))?:/,
+              /^(Feature|Fix|Docs|Style|Refactor|Performance|Test|Chore):/,
+              /^(\d+\.)?\d+\.\d+/,
+            ];
+            if (!validPatterns.some(pattern => pattern.test(title))) {
+              core.warning(`PR title doesn't follow conventional commits: "${title}"`);
+            }
+
+      - name: Check PR description
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const body = context.payload.pull_request.body;
+            if (!body || body.trim().length === 0) {
+              core.warning('PR description is empty.');
+            }
+
+      - name: Check for commits
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const commits = await github.rest.pulls.listCommits({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            if (commits.data.length === 0) core.setFailed('PR has no commits');
+
+  # ------------------------------------------------------------------
+  # JOB 2: Static Analysis (With Enhanced Documentation Logging)
+  # ------------------------------------------------------------------
+  static-analysis:
+    name: Static analysis
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Check code formatting
+        run: npx prettier --check src/
+        continue-on-error: true
+
+      - name: Validate documentation & links
+        run: |
+          ERRORS=0
+          echo "--- Checking Markdown Syntax ---"
+          # Loop through markdown files
+          for file in *.md; do
+            if [ -f "$file" ]; then
+              # 'grep -o' gets every match; 'wc -l' counts them. 
+              # This prevents exit code 1 when matches are 0.
+              count=$(grep -o '```' "$file" | wc -l)
+              
+              if [ $((count % 2)) -ne 0 ]; then
+                echo "::error file=$file::Unclosed code block (found $count backticks). Ensure every opening \`\`\` has a closing \`\`\`."
+                ERRORS=$((ERRORS + 1))
+              else
+                echo "[PASS] $file ($count backticks)"
+              fi
+            fi
+          done
+
+          echo "--- Checking Required Files ---"
+          for file in README.md QUICKSTART.md CONTRIBUTING.md; do
+            if [ ! -f "$file" ]; then
+              echo "::error::Required file missing: $file"
+              ERRORS=$((ERRORS + 1))
+            else
+              echo "[PASS] Found $file"
+            fi
+          done
+
+          if [ $ERRORS -ne 0 ]; then
+            echo "Documentation check failed with $ERRORS error(s)."
+            exit 1
+          fi
+
+  # ------------------------------------------------------------------
+  # JOB 3: Security Checks (With Warning Annotations)
+  # ------------------------------------------------------------------
+  security:
+    name: Security & quality
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript
+          queries: security-and-quality
+
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Validate JSON files
+        run: |
+          for file in $(find src -name "*.json"); do
+            node -e "JSON.parse(require('fs').readFileSync('$file', 'utf8'))" || { echo "::error file=$file::Invalid JSON syntax"; exit 1; }
+          done
+
+      - name: Check for TODO/FIXME & console
+        run: |
+          # Use warnings so they appear in the PR 'Files Changed' summary
+          CONSOLE_LOGS=$(grep -r "console\." src/ --include="*.js" | grep -v "console.error\|console.warn" || true)
+          if [ ! -z "$CONSOLE_LOGS" ]; then
+            echo "::warning::Found non-standard console usage (log/info/debug). Consider removing before release."
+            echo "$CONSOLE_LOGS"
+          fi
+
+          TODOS=$(grep -rE "TODO|FIXME" src/ --include="*.js" || true)
+          if [ ! -z "$TODOS" ]; then
+            echo "::notice::Source contains TODO or FIXME markers."
+          fi
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: '/language:javascript'
+
+  # ------------------------------------------------------------------
+  # JOB 4: Build & Verify
+  # ------------------------------------------------------------------
+  build-and-test:
+    name: Build & verify
+    needs: [static-analysis]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build extension
+        run: npm run build
+
+      - name: Verify build output
+        run: |
+          if [ ! -f build/extension.js ]; then 
+            echo "::error::Build artifact 'build/extension.js' was not created."
+            exit 1
+          fi
+          node -c build/extension.js
+
+      - name: Check extension structure (Regex)
+        run: |
+          node << 'EOF'
+          const fs = require('fs');
+          const content = fs.readFileSync('build/extension.js', 'utf8');
+          // Check for the full extension header structure as generated by build.js
+          const headerPattern = new RegExp(
+            [
+              '^// Name         :  .+$',
+              '^// ID           :  .+$',
+              '^// Description  :  .+$',
+              '^// By           :  .+$',
+              '^// License      :  .+$',
+              '^$',
+              '^// Version      :  .+$',
+              '^$',
+              '^// This file was generated by Mint, the new bundling toolchain for custom TurboWarp extensions\.$',
+              '^// It is not recommended to edit this file on your own\.$',
+              '^// Instead, edit it in this repository: .+$',
+              '^$',
+            ].join('\n'),
+            'm'
+          );
+          const checks = {
+            'Extension header structure': headerPattern,
+            'IIFE function': /\(function\s*\(\s*Scratch\s*\)/m,
+            'Registration': /Scratch\.extensions\.register/,
+          };
+          for (const [name, pattern] of Object.entries(checks)) {
+            if (!pattern.test(content)) {
+              console.error(`::error::Structural check failed: ${name} not found or incorrect in build output.`);
+              process.exit(1);
+            }
+          }
+          EOF
+
+      - name: Validate manifest (ID & version)
+        run: |
+          node -e "
+            const m = require('./src/manifest.json');
+            let failed = false;
+            // Check: ID must start with a letter and contain only letters, numbers, or underscores
+            if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(m.id)) {
+              console.error(`::error file=src/manifest.json::Invalid ID format: "${m.id}". Must start with a letter and contain only letters, numbers, or underscores.`);
+              failed = true;
+            }
+            if (!/^\d+\.\d+\.\d+/.test(m.version)) {
+              console.error(\`::error file=src/manifest.json::Invalid version: \"\${m.version}\". Use SemVer (e.g. 1.0.0).\`);
+              failed = true;
+            }
+            if (failed) process.exit(1);
+          "
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: extension-${{ matrix.node-version }}
+          path: build/extension.js
+          retention-days: 7
+
+      - name: Comment PR with build report
+        if: github.event_name == 'pull_request' && matrix.node-version == '20.x'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            const size = (fs.statSync('build/extension.js').size / 1024).toFixed(2);
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `### Build report (Node ${{ matrix.node-version }})\n- **Status**: Success\n- **Bundle Size**: ${size} KB\n- **Verification**: Structure & Syntax Valid`
+            });
+
+  # ------------------------------------------------------------------
+  # JOB 5: Dependabot Auto-Approve
+  # ------------------------------------------------------------------
+  dependabot-approve:
+    name: Dependabot auto-approve
+    # Only run if previous jobs passed AND the actor is dependabot
+    needs: [static-analysis, security, build-and-test]
+    if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@21025c705c08248db411dc16f3619e6b5f9ea21a # v2.5.0
+        with:
+          github-token: '${{ secrets.GITHUB_TOKEN }}'
+
+      - name: Approve and enable auto-merge
+        # Checks if the update is a major version bump. If it is, we skip auto-approving to allow for manual review.
+        if: steps.metadata.outputs.update-type != 'version-update:semver-major'
+        run: |
+          set -e
+          gh pr review --approve "$PR_URL"
+          gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

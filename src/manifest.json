@@ -1,0 +1,9 @@
+{
+  "name": "My TurboWarp Extension",
+  "id": "myTurboWarpExtension",
+  "version": "1.0.0",
+  "description": "A custom extension for TurboWarp",
+  "author": "Your Name",
+  "license": "LSL-1.0",
+  "url": "https://example.com/my-extension"
+}
