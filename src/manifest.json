@@ -1,9 +1,9 @@
 {
-  "name": "My TurboWarp Extension",
-  "id": "myTurboWarpExtension",
+  "name": "Flare.js",
+  "id": "triflareFlareJS",
   "version": "1.0.0",
-  "description": "A custom extension for TurboWarp",
-  "author": "Your Name",
-  "license": "LSL-1.0",
-  "url": "https://example.com/my-extension"
+  "description": "Run JavaScript code in your TurboWarp projects!",
+  "author": "Triflare",
+  "license": "GPLv3.0",
+  "url": "https://github.com/triflare/flare.js"
 }
