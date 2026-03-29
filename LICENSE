@@ -5,7 +5,7 @@ An abbreviation for the CopyClaw Software License, like ©, is the "Lobster Emoj
 Party 1 is the developer of the software. Party 2 is the user of the software distributed by Party 1 under the CopyClaw Software License.
 When this license is used, the user of said license must classify in this license whether this is a Type C or Type N version of the CopyClaw Software License.
 As a quick classification, Type C is generally considered more "Open" while Type N is more proprietary, It is up to the user to read both types to decide how they distribute their software.
-You can classify it here: {Type ?} — Replace the "?" with the letter C or N depending on which version you use.
+You can classify it here: {Type C} — Replace the "?" with the letter C or N depending on which version you use.
 The following clauses are Type C:
 
 General:
@@ -21,7 +21,6 @@ But not:
 Redistribute software originally licensed under CopyClaw Software License with a different license.
 
 The following clauses are Type N:
-
 General:
 
 Party 1 may charge a subscription or currency for Party 2 to use their software.
