@@ -95,7 +95,9 @@ jobs:
           echo "--- Checking Markdown Syntax ---"
           # Loop through markdown files
           TMP=$(mktemp)
-          find . -name "*.md" -type f -print0 > "$TMP"
+          find . \
+            -path './node_modules' -prune -o \
+            -name '*.md' -type f -print0 > "$TMP"
           while IFS= read -r -d '' file; do
             if [ -f "$file" ]; then
               # 'grep -o' gets every match; 'wc -l' counts them. 
