@@ -157,7 +157,6 @@ jobs:
 
       - name: Audit dependencies
         run: npm audit --audit-level=moderate
-        continue-on-error: true
 
       - name: Validate JSON files
         run: |
