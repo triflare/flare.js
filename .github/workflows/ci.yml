@@ -298,7 +298,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `### Build report (Node ${{ matrix.node-version }})\n- **Status**: Success\n- **Bundle Size**: ${size} KB\n- **Verification**: Structure & Syntax Valid`
+              body: `### Build report (Node ${{ matrix.node-version }})\n- **Status**: Success (Node ${{ matrix.node-version }} shard)\n- **Bundle Size**: ${size} KB\n- **Verification**: Structure & Syntax Valid`
             });
 
   # ------------------------------------------------------------------
