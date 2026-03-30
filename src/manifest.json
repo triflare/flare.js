@@ -1,0 +1,9 @@
+{
+  "name": "Flare.js",
+  "id": "triflareFlareJS",
+  "version": "1.0.0",
+  "description": "Run JavaScript code in your TurboWarp projects!",
+  "author": "Triflare",
+  "license": "GPLv3.0",
+  "url": "https://github.com/triflare/flare.js"
+}

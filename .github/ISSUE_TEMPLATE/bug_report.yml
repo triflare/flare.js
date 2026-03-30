@@ -1,0 +1,58 @@
+name: Bug Report
+description: Report a bug in the extension
+title: '[Bug] '
+labels: ['bug']
+
+body:
+  - type: markdown
+    attributes:
+      value: 'Thanks for reporting a bug! Please fill out the details below.'
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the bug
+      placeholder: 'What went wrong?'
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How do we reproduce this issue?
+      placeholder: "1. ...\n2. ...\n3. ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console Logs
+      description: Browser console output (F12 → Console tab)
+      render: javascript
+
+  - type: input
+    id: version
+    attributes:
+      label: Extension Version
+      placeholder: 'v1.0.0'
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser
+      placeholder: 'Chrome, Firefox, etc.'
+    validations:
+      required: true

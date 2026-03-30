@@ -1,14 +1,11 @@
-# flare.js
-A turbowarp/penguinmod extension made to interact with the browser (JS)
+# Introduction to Flare.js
 
-## Installation
+<p align="center">
+  <img src="assets/flare.js/logo-transparent.png" alt="Flare.js logo" width="100">
+</p>
 
-You can download the .js extension file from the flareJS.js file in this repository.
+> [!CAUTION]
+>
+> **Never** run code that others tell you to run with Flare.js. JavaScript can be dangerous in the wrong hands, like all programming languages!
 
-## Setup
-
-Go to the menu where you can import custom extensions and import the FlareJS.js file. make sure to import it as **unsandboxed** because this is a javascript executer *duh* or else ts **wont** work.
-
-## alr
-
-Your done bro just use js now okkkkk??????
+Flare.js is a simple way to directly run JavaScript in your TurboWarp projects. If you feel like you're being held back by standard Scratch blocks, you can now run your own JavaScript seamlessly!
