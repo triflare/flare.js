@@ -268,11 +268,6 @@ jobs:
               console.error('::error file=src/manifest.json::Invalid ID format: ' + JSON.stringify(m.id) + '. Must start with a letter and contain only letters, numbers, or underscores.');
               failed = true;
             }
-            if (!/^\d+\.\d+\.\d+/.test(m.version)) {
-              console.error('::error file=src/manifest.json::Invalid version: ' + JSON.stringify(m.version) + '. Use SemVer (e.g. 1.0.0).');
-              failed = true;
-            }
-            // Full-string anchored SemVer regex
             if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z-.]+)?(?:\+[0-9A-Za-z-.]+)?$/.test(m.version)) {
               console.error('::error file=src/manifest.json::Invalid version: ' + JSON.stringify(m.version) + '. Use SemVer (e.g. 1.0.0, 1.0.0-beta, 1.0.0+build).');
               failed = true;
