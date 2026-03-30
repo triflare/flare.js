@@ -31,18 +31,13 @@ jobs:
 
       - name: Verify output
         run: |
-          if [ ! -f build/extension.js ]; then
-            echo "::error::Build failed: extension.js not found"
-            exit 1
-          fi
-          if [ ! -f build/min.extension.js ]; then
-            echo "::error::Build failed: min.extension.js not found"
-            exit 1
-          fi
-          if [ ! -f build/pretty.extension.js ]; then
-            echo "::error::Build failed: pretty.extension.js not found"
-            exit 1
-          fi
+          for file in build/extension.js build/min.extension.js build/pretty.extension.js; do
+            if [ ! -f "$file" ]; then
+              echo "::error::Build failed: $file not found"
+              exit 1
+            fi
+            node -c "$file"
+          done
 
       - name: Create release and upload asset
         env:

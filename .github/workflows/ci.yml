@@ -100,10 +100,8 @@ jobs:
             -name '*.md' -type f -print0 > "$TMP"
           while IFS= read -r -d '' file; do
             if [ -f "$file" ]; then
-              # 'grep -o' gets every match; 'wc -l' counts them. 
-              # This prevents exit code 1 when matches are 0.
-              count=$(grep -o '```' "$file" | wc -l)
-              
+              # Use awk to count code fences, always outputs a number
+              count=$(awk 'BEGIN{c=0} {n=gsub(/```/,""); c+=n} END{print c}' "$file")
               if [ $((count % 2)) -ne 0 ]; then
                 echo "::error file=$file::Unclosed code block (found $count backticks). Ensure every opening \`\`\` has a closing \`\`\`."
                 ERRORS=$((ERRORS + 1))
@@ -273,6 +271,11 @@ jobs:
             }
             if (!/^\d+\.\d+\.\d+/.test(m.version)) {
               console.error('::error file=src/manifest.json::Invalid version: ' + JSON.stringify(m.version) + '. Use SemVer (e.g. 1.0.0).');
+              failed = true;
+            }
+            // Full-string anchored SemVer regex
+            if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z-.]+)?(?:\+[0-9A-Za-z-.]+)?$/.test(m.version)) {
+              console.error('::error file=src/manifest.json::Invalid version: ' + JSON.stringify(m.version) + '. Use SemVer (e.g. 1.0.0, 1.0.0-beta, 1.0.0+build).');
               failed = true;
             }
             if (failed) process.exit(1);
