@@ -94,7 +94,9 @@ jobs:
           ERRORS=0
           echo "--- Checking Markdown Syntax ---"
           # Loop through markdown files
-          find . -name "*.md" -type f -print0 | while IFS= read -r -d '' file; do
+          TMP=$(mktemp)
+          find . -name "*.md" -type f -print0 > "$TMP"
+          while IFS= read -r -d '' file; do
             if [ -f "$file" ]; then
               # 'grep -o' gets every match; 'wc -l' counts them. 
               # This prevents exit code 1 when matches are 0.
@@ -107,7 +109,8 @@ jobs:
                 echo "[PASS] $file ($count backticks)"
               fi
             fi
-          done
+          done < "$TMP"
+          rm -f "$TMP"
 
           echo "--- Checking Required Files ---"
           for file in README.md QUICKSTART.md CONTRIBUTING.md; do
@@ -212,11 +215,13 @@ jobs:
 
       - name: Verify build output
         run: |
-          if [ ! -f build/extension.js ]; then 
-            echo "::error::Build artifact 'build/extension.js' was not created."
-            exit 1
-          fi
-          node -c build/extension.js
+          for file in build/extension.js build/min.extension.js build/pretty.extension.js; do
+            if [ ! -f "$file" ]; then
+              echo "::error::Build artifact '$file' was not created."
+              exit 1
+            fi
+            node -c "$file"
+          done
 
       - name: Check extension structure (Regex)
         run: |

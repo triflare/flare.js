@@ -51,7 +51,7 @@ jobs:
           # Create or update release in an idempotent way
           if gh release view "${{ github.ref_name }}" >/dev/null 2>&1; then
             echo "Release exists: updating assets and metadata"
-            gh release edit "${{ github.ref_name }}" --title "Release ${{ github.ref_name }}" --draft=false --generate-notes || echo "gh release edit failed (non-critical)."
+            gh release edit "${{ github.ref_name }}" --title "Release ${{ github.ref_name }}" --draft=false || echo "gh release edit failed (non-critical)."
             gh release upload "${{ github.ref_name }}" ./build/extension.js ./build/min.extension.js ./build/pretty.extension.js --clobber
           else
             echo "Creating new release"
