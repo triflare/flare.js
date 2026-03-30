@@ -73,7 +73,7 @@ npm run build
 | `npm run watch`      | Rebuild automatically on file changes    |
 | `npm run lint`       | Run ESLint to check code style           |
 | `npm run format`     | Format code using Prettier               |
-| `npm run fullstack`  | Run format, lint, spellcheck, and build  |
+| `npm run fullstack`  | Run format, lint, and build  |
 
 All commands are run from the project root directory.
 

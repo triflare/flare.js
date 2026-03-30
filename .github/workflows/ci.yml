@@ -88,14 +88,13 @@ jobs:
 
       - name: Check code formatting
         run: npx prettier --check src/
-        continue-on-error: true
 
       - name: Validate documentation & links
         run: |
           ERRORS=0
           echo "--- Checking Markdown Syntax ---"
           # Loop through markdown files
-          for file in *.md; do
+          find . -name "*.md" -type f -print0 | while IFS= read -r -d '' file; do
             if [ -f "$file" ]; then
               # 'grep -o' gets every match; 'wc -l' counts them. 
               # This prevents exit code 1 when matches are 0.
@@ -262,11 +261,11 @@ jobs:
             let failed = false;
             // Check: ID must start with a letter and contain only letters, numbers, or underscores
             if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(m.id)) {
-              console.error(`::error file=src/manifest.json::Invalid ID format: "${m.id}". Must start with a letter and contain only letters, numbers, or underscores.`);
+              console.error('::error file=src/manifest.json::Invalid ID format: ' + JSON.stringify(m.id) + '. Must start with a letter and contain only letters, numbers, or underscores.');
               failed = true;
             }
             if (!/^\d+\.\d+\.\d+/.test(m.version)) {
-              console.error(\`::error file=src/manifest.json::Invalid version: \"\${m.version}\". Use SemVer (e.g. 1.0.0).\`);
+              console.error('::error file=src/manifest.json::Invalid version: ' + JSON.stringify(m.version) + '. Use SemVer (e.g. 1.0.0).');
               failed = true;
             }
             if (failed) process.exit(1);
