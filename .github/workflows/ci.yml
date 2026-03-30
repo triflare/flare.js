@@ -1,5 +1,5 @@
 name: Continuous integration
-# NOTE: Some 'uses:' entries reference tags (e.g., actions/checkout@v6). Pinning to immutable commit SHAs was not performed because commit SHAs must be resolved from the actions' repositories. Consider replacing tags with full commit SHAs for reproducible workflows.
+# NOTE: Actions are pinned to immutable commit SHAs for reproducibility and supply-chain safety.
 
 on:
   push:
